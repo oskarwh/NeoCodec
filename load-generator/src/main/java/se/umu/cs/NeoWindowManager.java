@@ -8,38 +8,35 @@ import com.googlecode.lanterna.gui2.DefaultWindowManager;
 import com.googlecode.lanterna.gui2.Window;
 import com.googlecode.lanterna.gui2.WindowBasedTextGUI;
 
+import se.umu.cs.windows.ControllWindow;
+
 public class NeoWindowManager extends DefaultWindowManager {
-    private final String controllWindowString = "ControllWindow";
-
-    /*@Override
-    public void onAdded(WindowBasedTextGUI textGUI, Window window, List<Window> allWindows) {
-        switch (window.getClass().getName()) {
-            case controllWindowString:
-                
-                break;
-            default:
-                throw new AssertionError();
-        }
-        
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'onAdded'");
-    }
-
-    @Override
-    public void onRemoved(WindowBasedTextGUI textGUI, Window window, List<Window> allWindows) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'onRemoved'");
-    }*/
+    private final String controllWindowString = "se.umu.cs.windows.ControllWindow";
+    private final String outputWindowString = "se.umu.cs.OutputWindow";
+    private final int SINGLE_LINE_HEIGHT = 1;
 
     @Override
     public void prepareWindows(WindowBasedTextGUI textGUI, List<Window> allWindows, TerminalSize screenSize) {
         TerminalSize size = textGUI.getScreen().getTerminalSize();
-        
-        allWindows.get(0).setPosition(new TerminalPosition(0, (size.getRows()/8)*7));
-        allWindows.get(0).setDecoratedSize(new TerminalSize(size.getColumns(), size.getRows()/8));
-        
-        allWindows.get(1).setPosition(TerminalPosition.TOP_LEFT_CORNER);
-        allWindows.get(1).setDecoratedSize(new TerminalSize(size.getColumns(), (size.getRows()/8)*7-2));
-    }
-    
+
+        for (Window window : allWindows) {
+            if (window.getClass().getName().equals(controllWindowString)) {
+                int height = 3;
+                int width = size.getColumns() - 2;
+
+                window.setPosition(new TerminalPosition(1, (size.getRows()/16)*15 + 1));
+                window.setDecoratedSize(new TerminalSize(width < 1 ? 1 : width, height));
+
+                ControllWindow cWin = (ControllWindow) window;
+                cWin.updateSize();
+            }else if (window.getClass().getName().equals(outputWindowString)) {
+                int height = ((size.getRows()/16)*15) - 2;
+                int width = size.getColumns() - 2;
+
+                window.setPosition(new TerminalPosition(1, 1));
+                window.setDecoratedSize(new TerminalSize(width < 1 ? 1 : width, height < 1 ? 1 : height));
+            }
+        }
+
+    }    
 }
