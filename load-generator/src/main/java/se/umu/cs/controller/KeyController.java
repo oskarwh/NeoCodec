@@ -9,14 +9,28 @@ import com.googlecode.lanterna.gui2.WindowListener;
 import com.googlecode.lanterna.input.KeyStroke;
 
 public class KeyController implements WindowListener {
-    
-    public KeyController() {
+    private CommandController commands;
 
+    public KeyController() {
+        this.commands = new CommandController();
     }
 
     @Override
     public void onInput(Window basePane, KeyStroke keyStroke, AtomicBoolean deliverEvent) {
-        System.err.println("Pressed: " + keyStroke);
+        
+        if (keyStroke.isCtrlDown()) {
+            switch (keyStroke.getCharacter()) {
+                case 'e':
+                    commands.clearOutput();
+                    break;
+                default:
+                    System.err.println("Unhandled ctrl key: " + keyStroke.getCharacter());
+                    break;
+            }
+        } else {
+            // Handles normal key inputs
+            System.err.println("Pressed: " + keyStroke);
+        }
     }
 
     @Override
