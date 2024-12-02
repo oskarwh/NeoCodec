@@ -348,7 +348,7 @@ kube-prometheus-stack:
       - url: https://prometheus-prod-39-prod-eu-north-0.grafana.net/api/prom/push
         basic_auth:
           username: 1926166
-          password: glc_eyJvIjoiMTI4NDc5OCIsIm4iOiJzdGFjay0xMTA0NTg3LWFsbG95LW5lb2NvZGVjIiwiayI6ImRtTFMyMG80U2UyMDgwY1g0ZE45bHpGNCIsIm0iOnsiciI6InByb2QtZXUtbm9ydGgtMCJ9fQ==
+          password:
     scrape_configs:
       - job_name: node
         static_configs:
