@@ -5,11 +5,14 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import java.util.concurrent.TimeUnit;
+
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.Producer;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.Schema;
+import org.apache.pulsar.client.api.SubscriptionType;
 
 import com.google.protobuf.ByteString;
 
@@ -36,6 +39,8 @@ public class Converter {
         Consumer<byte[]> consumer = client.newConsumer()
             .topic("input-topic")
             .subscriptionName("input-subscription")
+            .subscriptionType(SubscriptionType.Shared)
+            .ackTimeout(30, TimeUnit.SECONDS)
             .subscribe();
         
         while (true) {
