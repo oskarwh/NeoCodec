@@ -1,22 +1,22 @@
 package se.umu.cs;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ByteArrayInputStream;
-import java.io.FileOutputStream;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
-import net.bramp.ffmpeg.FFmpeg;
-import net.bramp.ffmpeg.FFprobe;
-import net.bramp.ffmpeg.builder.FFmpegBuilder;
-import net.bramp.ffmpeg.FFmpegExecutor;
-
-import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.Message;
+import org.apache.pulsar.client.api.Producer;
+import org.apache.pulsar.client.api.PulsarClient;
+import org.apache.pulsar.client.api.Schema;
 
 import com.google.protobuf.ByteString;
+
+import net.bramp.ffmpeg.FFmpeg;
+import net.bramp.ffmpeg.FFmpegExecutor;
+import net.bramp.ffmpeg.FFprobe;
+import net.bramp.ffmpeg.builder.FFmpegBuilder;
 
 public class Converter {
     /**
@@ -34,8 +34,8 @@ public class Converter {
 
         
         Consumer<byte[]> consumer = client.newConsumer()
-            .topic("converter-topic")
-            .subscriptionName("converter-subscription")
+            .topic("input-topic")
+            .subscriptionName("input-subscription")
             .subscribe();
         
         while (true) {
@@ -63,9 +63,9 @@ public class Converter {
                 // Create output payload
                 File of = new File(output);
                 byte[] byteArray = new byte[(int) of.length()];
-                FileInputStream ois = new FileInputStream(of);
-                ois.read(byteArray);
-                ois.close();
+                try (FileInputStream is = new FileInputStream(of)) {
+                    is.read(byteArray);
+                }
                 
                 ByteString dataByteString = ByteString.copyFrom(byteArray);
                 ProtoPayload.Builder vmBuilder = ProtoPayload.newBuilder()
@@ -79,8 +79,18 @@ public class Converter {
                 // Serialize and send output payload
                 byte[] outputPayload = Serializer.serialize(vmBuilder.build());
 
-                // TODO: Send output payload to next topic
-                
+                // Send output payload to next topic
+                Producer<byte[]> producer = client.newProducer(Schema.BYTES)
+                    .topic("output-topic")
+                    .create();
+
+                producer.newMessage()
+                    .value(outputPayload)
+                    .sendAsync()
+                    .thenAccept(mId -> {
+                        System.out.println("Message " + mId + " was succefully delivered.");
+                    });
+
                 consumer.acknowledge(msg);
             } catch (Exception e) {
                 System.err.println("Failed to convert file: " + e.getMessage());
