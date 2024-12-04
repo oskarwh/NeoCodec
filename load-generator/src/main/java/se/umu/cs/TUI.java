@@ -16,29 +16,38 @@ import com.googlecode.lanterna.terminal.Terminal;
 
 import se.umu.cs.controller.KeyController;
 import se.umu.cs.windows.ControllWindow;
+import se.umu.cs.windows.OutputWindow;
 
+import se.umu.cs.pulsar.PClient;
 
 public class TUI 
 {
+    /*
+     * Arguments:
+     *  <brokers> - Brokers consist of a comma separated list of host:port pairs
+     */
+    public static void main(String[] args) throws IOException {
+        if (args.length != 1)
+            throw new IllegalArgumentException("Usage: <brokers>");
 
-    public static void main( String[] args )
-    {
+        String brokers = args[0];
+
         try {
             File file = new File("stderr");
             FileOutputStream fos = new FileOutputStream(file);
             PrintStream ps = new PrintStream(fos);
             System.setErr(ps);
 
-            KeyController keyController = new KeyController();
-
+            
             Terminal terminal = new DefaultTerminalFactory().createTerminal();
             Screen screen = new TerminalScreen(terminal);
             screen.startScreen();
-
-            BasicWindow outputWindow = new OutputWindow();
+            
+            OutputWindow outputWindow = new OutputWindow();
+            ControllWindow controllWindow = new ControllWindow();
+            KeyController keyController = new KeyController(controllWindow, outputWindow);
+                        
             outputWindow.addWindowListener(keyController);
-
-            BasicWindow controllWindow = new ControllWindow();
             controllWindow.addWindowListener(keyController);
 
             // Create interface and add windows to it
@@ -47,6 +56,7 @@ public class TUI
             gui.addWindow(outputWindow);
             gui.addWindowAndWait(controllWindow);
         } catch (IOException ex) {
+
         }
         
     }

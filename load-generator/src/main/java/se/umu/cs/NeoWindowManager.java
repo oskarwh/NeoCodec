@@ -12,7 +12,7 @@ import se.umu.cs.windows.ControllWindow;
 
 public class NeoWindowManager extends DefaultWindowManager {
     private final String controllWindowString = "se.umu.cs.windows.ControllWindow";
-    private final String outputWindowString = "se.umu.cs.OutputWindow";
+    private final String outputWindowString = "se.umu.cs.windows.OutputWindow";
     private final int SINGLE_LINE_HEIGHT = 1;
 
     @Override

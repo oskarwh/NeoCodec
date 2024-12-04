@@ -8,22 +8,19 @@ import com.googlecode.lanterna.gui2.BasicWindow;
 import com.googlecode.lanterna.gui2.Panel;
 import com.googlecode.lanterna.gui2.TextBox;
 
-public class ControllWindow extends BasicWindow {
+public class OutputWindow extends BasicWindow {
     private Panel panel = null;
     private TextBox textBox = null;
-    
-    public ControllWindow() {
+
+    public OutputWindow() {
         this.panel = new Panel();
+        this.textBox = new TextBox("");
         this.textBox = new TextBox("placeholder", TextBox.Style.SINGLE_LINE);
-        this.textBox.setTheme(new SimpleTheme(TextColor.ANSI.BLACK, new TextColor.RGB(208,207,204)));
-        
-        // Handle enter keystroke
-        //this.textBox.handleKeyStroke(KeyStroke.fromString(keyStr));
         
         this.panel.addComponent(this.textBox);
-
+        
         // Add panel to window
-        this.setComponent(this.panel);
+        this.setComponent(panel);
     }
 
     public void updateSize() {
@@ -38,11 +35,7 @@ public class ControllWindow extends BasicWindow {
         }
     }
 
-    public void ClearInput() {
+    public void clearOutput() {
         this.textBox.setText("");
-    }
-
-    public String getInput() {
-        return this.textBox.getText();
     }
 }

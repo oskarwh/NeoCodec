@@ -45,9 +45,17 @@
       <version>3.8.1</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.apache.pulsar</groupId>
+      <artifactId>pulsar-bom</artifactId>
+      <version>4.0.0</version>
+      <type>pom</type>
+      <scope>import</scope>
+    </dependency>
   </dependencies>
   <properties>
     <maven.compiler.target>1.8</maven.compiler.target>
     <maven.compiler.source>1.8</maven.compiler.source>
+    <pulsar.version>4.0.0</pulsar.version>
   </properties>
 </project>
