@@ -2,12 +2,12 @@ package se.umu.cs.pulsar.clients;
 
 import org.apache.pulsar.client.admin.PulsarAdmin;
 import org.apache.pulsar.client.admin.PulsarAdminException;
-import org.apache.pulsar.client.api.PulsarClientException;
 
 import se.umu.cs.pulsar.interfaces.PulsarAdminCommunication;
 
 public class PAdmin implements PulsarAdminCommunication{
     private PulsarAdmin admin;
+    private int clientId = 0;
 
     public PAdmin(String pulsar_url) {
         try {
@@ -24,18 +24,33 @@ public class PAdmin implements PulsarAdminCommunication{
     }
 
     @Override
-    public String createClientTopic(String ip, String port){
-
-        return null;
+    public String createClientTopic(String ip) {
+        try {
+            String id = ip + ":" + getNextId();
+            admin.topics().createNonPartitionedTopic(id);
+            return id;
+        } catch (PulsarAdminException e) {
+            System.err.println("Failed to create topic: " + e.getMessage());
+            return null;
+        }
     }
 
     @Override
-    public int removeClientTopic(String ip, String port){
-
-        return 0;
+    public int removeClientTopic(String topic) {
+        try {
+            this.admin.topics().delete(topic);
+            return 0;
+        } catch (PulsarAdminException e) {
+            System.err.println("Failed to remove client: " + e.getMessage());
+            return -1;
+        }
     }
 
     public void close() {
         this.admin.close();
+    }
+
+    private String getNextId() {
+        return String.valueOf(clientId++);
     }
 }

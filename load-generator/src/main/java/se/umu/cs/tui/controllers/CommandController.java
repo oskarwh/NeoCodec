@@ -4,9 +4,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-import se.umu.cs.workers.WorkerHandler;
 import se.umu.cs.tui.windows.ControllWindow;
 import se.umu.cs.tui.windows.OutputWindow;
+import se.umu.cs.workers.WorkerHandler;
 
 public class CommandController {
     private ControllWindow controllWindow = null;
@@ -105,7 +105,7 @@ public class CommandController {
                 }
 
                 for (int i = 0; i < numClients; i++) {
-                    WorkerHandler.addClient(path + i, byteArray, sendRate);
+                    String id = WorkerHandler.addClient(byteArray, sendRate);
                 }
 
                 break;

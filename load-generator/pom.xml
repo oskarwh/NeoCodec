@@ -16,7 +16,7 @@
     </properties>
 
     <dependencies>
-        <!--TUI Dependency-->
+        <!-- TUI Dependency -->
         <dependency>
             <groupId>com.googlecode.lanterna</groupId>
             <artifactId>lanterna</artifactId>
@@ -30,7 +30,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!--Apche Pulsar -->
+        <!-- Apche Pulsar -->
         <dependency>
             <groupId>org.apache.pulsar</groupId>
             <artifactId>pulsar-bom</artifactId>
@@ -49,6 +49,7 @@
           <version>2.10.6</version>
         </dependency>
 
+        <!-- slf4j for dependancy logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>

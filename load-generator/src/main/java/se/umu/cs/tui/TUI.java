@@ -16,10 +16,6 @@ import se.umu.cs.tui.windows.OutputWindow;
 
 public class TUI 
 {
-    /*
-     * Arguments:
-     *  <brokers> - Brokers consist of a comma separated list of host:port pairs
-     */
     public TUI() throws IOException {
         Terminal terminal = new DefaultTerminalFactory().createTerminal();
         Screen screen = new TerminalScreen(terminal);

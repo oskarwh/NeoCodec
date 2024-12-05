@@ -34,6 +34,9 @@ public class KeyController implements WindowListener {
             return;
         }
 
+        if (keyStroke.getCharacter() == null)
+            return;
+
         if (keyStroke.isCtrlDown()) {
             switch (keyStroke.getCharacter()) {
                 case 'e':

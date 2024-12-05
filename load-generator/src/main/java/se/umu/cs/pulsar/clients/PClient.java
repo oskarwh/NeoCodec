@@ -27,6 +27,7 @@ public class PClient {
             this.producer = client.newProducer(Schema.BYTES)
                 .topic(id + "-producer-topic")
                 .create();
+
     
             this.consumer = client.newConsumer()
                 .topic(id + "-consumer-topic")

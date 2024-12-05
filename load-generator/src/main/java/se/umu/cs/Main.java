@@ -10,6 +10,10 @@ import se.umu.cs.tui.TUI;
 import se.umu.cs.workers.WorkerHandler;
 
 public class Main {
+    /*
+     * Arguments:
+     *  <brokers> - Brokers consist of a comma separated list of host:port pairs
+     */
     public static void main(String[] args) throws IOException {
         // Error logging goes to file
         File file = new File("stderr");
@@ -26,7 +30,7 @@ public class Main {
         PAdmin admin = new PAdmin("localhost:8080"); // Port 8080 is Admin port for Pulsar
         
         // Create worker handler
-        WorkerHandler.Initialize(brokers);
+        WorkerHandler.Initialize(brokers, admin);
 
         // Create TUI
         TUI tui = new TUI();

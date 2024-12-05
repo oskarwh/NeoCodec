@@ -3,23 +3,28 @@ package se.umu.cs.workers;
 import java.util.HashMap;
 import java.util.Map;
 
+import se.umu.cs.pulsar.clients.PAdmin;
+
 public final class WorkerHandler {
     private static Map<String, WorkerClient> workers = null;
     private static String brokers = null;
+    private static PAdmin admin = null;
 
-    public static void Initialize(String brokers) {
+    public static void Initialize(String brokers, PAdmin admin) {
         workers = new HashMap<>();
         WorkerHandler.brokers = brokers;
+        WorkerHandler.admin = admin;
     }
 
-    public static void addClient(String id, byte[] filebuffer, int sendRate) {
+    public static String addClient(byte[] filebuffer, int sendRate) {
         if (brokers == null) {
             System.err.printf("[id] No brokers defined.\n");
-            return;
+            return null;
         }
 
-        WorkerClient client = new WorkerClient(id, WorkerHandler.brokers, filebuffer, sendRate);
-        WorkerHandler.workers.put(id, client);
+        WorkerClient client = new WorkerClient(admin, WorkerHandler.brokers, filebuffer, sendRate);
+        WorkerHandler.workers.put(client.getClientId(), client);
+        return client.getClientId();
     }
 
     public static void startClient(String id) {
