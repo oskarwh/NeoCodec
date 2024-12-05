@@ -1,0 +1,25 @@
+kaap:
+  cluster:
+    create: true
+    spec:
+      global:
+        name: pulsar
+        image: apachepulsar/pulsar:3.0.0
+        restartOnConfigMapChange: true
+
+kube-prometheus-stack:
+  enabled: true
+  grafana:
+    adminPassword: grafana1
+  prometheus:
+    prometheusSpec:
+      remoteWrite:
+        - url: "https://prometheus-prod-39-prod-eu-north-0.grafana.net/api/prom/push"
+          basicAuth:
+              username:
+                name: kubepromsecret
+                key: username
+              password:
+                name: kubepromsecret
+                key: password
+                                   

@@ -1,0 +1,116 @@
+kaap:
+  cluster:
+    create: true
+    spec:
+      global:
+        name: pulsar
+        image: apachepulsar/pulsar:4.0.0
+        restartOnConfigMapChange: false
+      zookeeper:
+        replicas: 1
+        dataVolume:
+          name: default
+          size: 100M
+        resources:
+          requests:
+            cpu: "0.2"
+            memory: "128Mi"
+          limits:
+            memory: "1Gi"
+            cpu: "1"
+      bookkeeper:
+        replicas: 1
+        volumes:
+          journal:
+            size: 1Gi
+          ledgers:
+            size: 1Gi
+        resources:
+          requests:
+            cpu: "0.2"
+            memory: "128Mi"
+          limits:
+            memory: "1Gi"
+            cpu: "1"
+      broker:
+        replicas: 1
+        config:
+          managedLedgerDefaultAckQuorum: "1"
+          managedLedgerDefaultEnsembleSize: "1"
+          managedLedgerDefaultWriteQuorum: "1"
+        resources:
+          requests:
+            cpu: "0.2"
+            memory: "128Mi"
+          limits:
+            memory: "1Gi"
+            cpu: "1"
+      proxy:
+        replicas: 1
+        resources:
+          requests:
+            cpu: "0.2"
+            memory: "128Mi"
+          limits:
+            memory: "512Mi"
+            cpu: "1"
+        env:
+          - name: JAVA_OPTS
+            value: "-Xms256m -Xmx768m"
+        webSocket:
+          resources:
+            requests:
+              cpu: "0.2"
+              memory: "128Mi"
+            limits:
+              memory: "512Mi"
+              cpu: "1"
+      autorecovery:
+        replicas: 1
+        resources:
+          requests:
+            cpu: "0.2"
+            memory: "128Mi"
+          limits:
+            memory: "1Gi"
+            cpu: "1"
+      bastion:
+        replicas: 1
+        resources:
+          requests:
+            cpu: "0.2"
+            memory: "128Mi"
+          limits:
+            memory: "1Gi"
+            cpu: "1"
+      functionsWorker:
+        replicas: 1
+        runtime: kubernetes
+        config:
+          numFunctionPackageReplicas: 1
+          functionInstanceMaxResources:
+            disk: 10000000000
+            ram: 500000000
+            cpu: 0.3
+        resources:
+          requests:
+            cpu: "0.3"
+
+pulsarGrafanaDashboards:
+  enabled: true
+
+kube-prometheus-stack:
+  enabled: true
+  grafana:
+    adminPassword: grafana1
+  prometheus:
+    prometheusSpec:
+      remoteWrite:
+        - url: "https://prometheus-prod-39-prod-eu-north-0.grafana.net/api/prom/push"
+          basicAuth:
+              username:
+                name: kubepromsecret
+                key: username
+              password:
+                name: kubepromsecret 
+                key: password
