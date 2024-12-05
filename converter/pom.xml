@@ -18,11 +18,21 @@
   </properties>
   
   <dependencies>
+    <!--Hazelcast-->
+    <dependency>
+        <groupId>com.hazelcast</groupId>
+        <artifactId>hazelcast</artifactId>
+        <version>4.2.8</version>
+    </dependency>
+
+    <!-- FFMpeg -->
     <dependency>
       <groupId>net.bramp.ffmpeg</groupId>
       <artifactId>ffmpeg</artifactId>
       <version>${ffmpeg.version}</version>
     </dependency>
+
+    <!-- Pulsar -->
     <dependency>
       <groupId>org.apache.pulsar</groupId>
       <artifactId>pulsar-bom</artifactId>
@@ -35,11 +45,15 @@
       <artifactId>pulsar-client</artifactId>
       <version>${pulsar.version}</version>
     </dependency>
+
+    <!-- Protobuf -->
     <dependency>
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java</artifactId>
       <version>${protobuf.version}</version>
     </dependency>
+
+    <!-- slf4j for dependacy logging -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
