@@ -1,6 +1,6 @@
 for i in {002..004}; do
  kubectl drain ceti-vm-$i --ignore-daemonsets
- kubectl delete ceti-vm-$i
+ kubectl delete node ceti-vm-$i
  ssh ceti-vm-$i sudo kubeadm reset -y
 done
 
