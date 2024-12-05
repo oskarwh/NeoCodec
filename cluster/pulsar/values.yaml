@@ -1,0 +1,83 @@
+volumes:
+  persistence: True
+
+zookeeper:
+  replicas: 1
+  volumes:
+    data:
+      size: 100Mi
+  resources:
+    requests:
+      cpu: "0.2"
+      memory: "128Mi"
+    limits:
+      memory: "1Gi"
+      cpu: "1"
+bookkeeper:
+  replicas: 2
+  volumes:
+    journal:
+      size: 100Mi
+    ledgers:
+      size: 100Mi
+  resources:
+    requests:
+      cpu: "0.2"
+      memory: "128Mi"
+    limits:
+      memory: "1Gi"
+      cpu: "1"
+broker:
+  replicas: 1
+  config:
+    managedLedgerDefaultAckQuorum: "1"
+    managedLedgerDefaultEnsembleSize: "1"
+    managedLedgerDefaultWriteQuorum: "1"
+  resources:
+    requests:
+      cpu: "0.2"
+      memory: "128Mi"
+    limits:
+      memory: "1Gi"
+      cpu: "1"
+proxy:
+  replicas: 1
+  resources:
+    requests:
+      cpu: "0.2"
+      memory: "128Mi"
+    limits:
+      memory: "512Mi"
+      cpu: "1"
+autorecovery:
+  replicas: 1
+  resources:
+    requests:
+      cpu: "0.2"
+      memory: "128Mi"
+    limits:
+      memory: "1Gi"
+      cpu: "1"
+bastion:
+  replicas: 1
+  resources:
+    requests:
+      cpu: "0.2"
+      memory: "128Mi"
+    limits:
+      memory: "1Gi"
+      cpu: "1"
+functionsWorker:
+  replicas: 1
+  runtime: kubernetes
+  config:
+    logLevel: "OFF"  # Disable logging
+    numFunctionPackageReplicas: 1
+    functionInstanceMaxResources:
+      disk: 10000000000
+      ram: 500000000
+      cpu: 0.3
+  resources:
+    requests:
+      cpu: "0.3"
+
