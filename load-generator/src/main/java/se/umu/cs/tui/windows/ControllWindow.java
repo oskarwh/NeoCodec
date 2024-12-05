@@ -1,4 +1,4 @@
-package se.umu.cs.windows;
+package se.umu.cs.tui.windows;
 
 import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TerminalSize;

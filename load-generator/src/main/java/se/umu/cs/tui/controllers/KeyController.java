@@ -1,5 +1,6 @@
-package se.umu.cs.controller;
+package se.umu.cs.tui.controllers;
 
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.googlecode.lanterna.TerminalPosition;
@@ -8,8 +9,8 @@ import com.googlecode.lanterna.gui2.Window;
 import com.googlecode.lanterna.gui2.WindowListener;
 import com.googlecode.lanterna.input.KeyStroke;
 
-import se.umu.cs.windows.ControllWindow;
-import se.umu.cs.windows.OutputWindow;
+import se.umu.cs.tui.windows.ControllWindow;
+import se.umu.cs.tui.windows.OutputWindow;
 
 public class KeyController implements WindowListener {
     private CommandController commands;
@@ -60,7 +61,11 @@ public class KeyController implements WindowListener {
                 System.err.println("No input reference");
                 return;
             } else if (keyStroke.getCharacter() == '\n') {
-                commands.handleCommand(commandStr);
+                try {
+                    commands.handleCommand(commandStr);
+                } catch (IOException e) {
+                    System.err.println("Something went wrong.");
+                }
             }
 
         }

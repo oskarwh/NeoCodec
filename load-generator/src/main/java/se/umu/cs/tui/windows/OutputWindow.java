@@ -1,9 +1,7 @@
-package se.umu.cs.windows;
+package se.umu.cs.tui.windows;
 
 import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.graphics.SimpleTheme;
 import com.googlecode.lanterna.gui2.BasicWindow;
 import com.googlecode.lanterna.gui2.Panel;
 import com.googlecode.lanterna.gui2.TextBox;

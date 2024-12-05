@@ -1,7 +1,12 @@
-package se.umu.cs.controller;
+package se.umu.cs.tui.controllers;
 
-import se.umu.cs.windows.ControllWindow;
-import se.umu.cs.windows.OutputWindow;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import se.umu.cs.workers.WorkerHandler;
+import se.umu.cs.tui.windows.ControllWindow;
+import se.umu.cs.tui.windows.OutputWindow;
 
 public class CommandController {
     private ControllWindow controllWindow = null;
@@ -14,7 +19,7 @@ public class CommandController {
         this.outputWindow = ow;
     }
 
-    public void handleCommand(String command) {
+    public void handleCommand(String command) throws IOException {
         // Handle the command
         System.err.println("Command: " + command);
 
@@ -72,23 +77,41 @@ public class CommandController {
     }
 
     public void stopRun() {
-        // Stop the current run
+        // Stop the current runs
         System.err.println("Ctrl + S");
     }
 
-    public void runCommand(String command) {
+    public void runCommand(String command) throws IOException {
         // Run the command
         System.err.println("Run: " + command);
 
         String[] words = command.split(" ");
-        if (words.length == 2) {
-            // Run file
+        String path;
+        switch (words.length) {
+            case 2:
+                path = words[1];
+                // Run file
+                break;
+            case 4:
+                // Run file with clients and rate
+                path = words[1];
+                int numClients = Integer.parseInt(words[2]);
+                int sendRate = Integer.parseInt(words[3]);
+                
+                File filebuffer = new File(path);
+                byte[] byteArray = new byte[(int) filebuffer.length()];
+                try (FileInputStream is = new FileInputStream(filebuffer)) {
+                    is.read(byteArray);
+                }
 
-        } else if (words.length == 4) {
-            // Run file with clients and rate
+                for (int i = 0; i < numClients; i++) {
+                    WorkerHandler.addClient(path + i, byteArray, sendRate);
+                }
 
-        } else {
-            System.err.println("Usage: run <file> [<clients> <rate>]");
+                break;
+            default:
+                System.err.println("Usage: run <file> [<clients> <rate>]");
+                break;
         }
     }
 

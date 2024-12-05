@@ -1,4 +1,4 @@
-package se.umu.cs;
+package se.umu.cs.tui;
 
 import java.util.List;
 
@@ -8,12 +8,11 @@ import com.googlecode.lanterna.gui2.DefaultWindowManager;
 import com.googlecode.lanterna.gui2.Window;
 import com.googlecode.lanterna.gui2.WindowBasedTextGUI;
 
-import se.umu.cs.windows.ControllWindow;
+import se.umu.cs.tui.windows.ControllWindow;
 
 public class NeoWindowManager extends DefaultWindowManager {
-    private final String controllWindowString = "se.umu.cs.windows.ControllWindow";
-    private final String outputWindowString = "se.umu.cs.windows.OutputWindow";
-    private final int SINGLE_LINE_HEIGHT = 1;
+    private final String controllWindowString = "se.umu.cs.tui.windows.ControllWindow";
+    private final String outputWindowString = "se.umu.cs.tui.windows.OutputWindow";
 
     @Override
     public void prepareWindows(WindowBasedTextGUI textGUI, List<Window> allWindows, TerminalSize screenSize) {
