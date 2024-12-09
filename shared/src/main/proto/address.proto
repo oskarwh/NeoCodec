@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "se.umu.cs";
+option java_outer_classname = "RpcAddressMessage";
+
+package se.umu.cs;
+
+message RpcAddress {
+    string ip = 1;
+    string port = 2;
+}

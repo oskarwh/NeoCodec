@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "se.umu.cs";
+option java_outer_classname = "RpcEmptyMessage";
+
+package se.umu.cs;
+
+message RpcEmpty {
+    string error = 1;
+}
