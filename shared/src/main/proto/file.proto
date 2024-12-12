@@ -10,4 +10,5 @@ message NeoFile {
     bytes file = 1;
     string sourceType = 2;
     string targetType = 3;
+    string outputTopic = 4;
 }
