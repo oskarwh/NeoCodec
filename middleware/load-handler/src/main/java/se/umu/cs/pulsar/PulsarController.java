@@ -8,6 +8,11 @@ import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.admin.Functions;
 import org.apache.pulsar.common.functions.FunctionConfig;
 
+import se.umu.cs.NeoPayload;
+
+import org.apache.pulsar.common.schema.SchemaInfo;
+import org.apache.pulsar.common.schema.SchemaType;
+
 public final class PulsarController {
     private static PulsarAdmin admin;
     private static int clientId = 0;
@@ -16,11 +21,14 @@ public final class PulsarController {
     private static final String pulsarPort = "80";
 
     private static final String functionFilePath = "conversion-output-handler.jar";
+    
+    private static final String tenant = "public";
+    private static final String namespace = "neocodec"; 
+    private static final String base = "persistent://" + tenant + "/" + namespace + "/";
+
+    private static SchemaInfo si = null;
 
     public static void init() {
-        // port = p;
-        // admin = null;
-        
         try {
             String url = "http://" + pulsarIp + ":" + pulsarPort;
             admin = PulsarAdmin.builder()
@@ -32,13 +40,32 @@ public final class PulsarController {
             System.exit(-1);
         }
 
+        System.out.println(NeoPayload.getDescriptor().toProto());
+
+        si = SchemaInfo.builder()
+            .name("NeoPayload")
+            .type(SchemaType.PROTOBUF)
+            .schema(NeoPayload.getDescriptor().toProto().toByteArray())
+            .build();
+
+
+
+
+
         try {
-            if (!topicExists("input-topic"))
-                admin.topics().createNonPartitionedTopic("input-topic");
-            if (!topicExists("output-topic"))
-                admin.topics().createNonPartitionedTopic("output-topic");
+            if (!namespaceExists(namespace))
+                admin.namespaces().createNamespace(tenant + "/" + namespace);
+
+            if (!topicExists("input-topic")) {
+                admin.topics().createNonPartitionedTopic(base + "input-topic");
+                admin.schemas().createSchema(base + "input-topic", si);
+            }
+            if (!topicExists("output-topic")) {
+                admin.topics().createNonPartitionedTopic(base + "output-topic");
+                admin.schemas().createSchema(base + "output-topic", si);
+            }
         } catch (PulsarAdminException e) {
-            System.err.println("Failed to initalize topics");
+            System.err.println("Failed to initalize topics: " + e.getMessage());
             System.exit(-1);
         }
 
@@ -52,8 +79,7 @@ public final class PulsarController {
         fc.setRuntime(FunctionConfig.Runtime.JAVA);
         fc.setJar(functionFilePath);
         fc.setClassName("se.umu.cs.OutputHandlerFunction");
-        fc.setInputs(Collections.singleton("persistent://public/default/input-topic")); // TODO: Change to output-topic
-        // fc.setParallelism(1);
+        fc.setInputs(Collections.singleton(base + "input-topic")); // TODO: Change to output-topic
 
         try {
             functions.createFunction(fc, functionFilePath);
@@ -65,7 +91,7 @@ public final class PulsarController {
 
     public static String createClientTopic(String id) {
         try {
-            admin.topics().createNonPartitionedTopic(id);
+            admin.topics().createNonPartitionedTopic(base + id);
             return id;
         } catch (PulsarAdminException e) {
             System.err.println("Filed to create client topic: " + e.getMessage());
@@ -75,7 +101,7 @@ public final class PulsarController {
 
     public static int removeClientTopic(String topic) {
         try {
-            admin.topics().delete(topic);
+            admin.topics().delete(base + topic);
             return 0;
         } catch (PulsarAdminException e) {
             System.err.println("Failed to remove client topic: " + e.getMessage());
@@ -83,14 +109,22 @@ public final class PulsarController {
         }
     }
 
-    public static boolean topicExists(String topic) throws PulsarAdminException {
-        int num = admin.topics().getPartitionedTopicMetadata(topic).partitions;
-        if (num == 0) {
-            try {
-                admin.topics().getStats(topic);
-            } catch (PulsarAdminException.NotFoundException e) {
-                return false;
-            }
+    public static boolean topicExists(String topic) {
+        try {
+            int num = admin.topics().getPartitionedTopicMetadata(base + topic).partitions;
+            if (num == 0)
+                admin.topics().getStats(base + topic);
+        } catch (PulsarAdminException e) {
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean namespaceExists(String namespace) throws PulsarAdminException {
+        try {
+            admin.namespaces().getPolicies(tenant + "/" + namespace);
+        } catch (PulsarAdminException.NotFoundException e) {
+            return false;
         }
         return true;
     }
