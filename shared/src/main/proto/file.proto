@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option java_multiple_files = true;
 option java_package = "se.umu.cs";
-option java_outer_classname = "RpcFileMessage";
+option java_outer_classname = "NeoFileMessage";
 
 package se.umu.cs;
 
@@ -10,4 +10,5 @@ message NeoFile {
     bytes file = 1;
     string sourceType = 2;
     string targetType = 3;
+    string outputTopic = 4;
 }

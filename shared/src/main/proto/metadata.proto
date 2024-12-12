@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "se.umu.cs";
+option java_outer_classname = "NeoMetadataMessage";
+
+package se.umu.cs;
+
+message NeoMetadata {
+    string outputTopic = 1;
+    int32 error = 2;
+    string errorMessage = 3;
+}
