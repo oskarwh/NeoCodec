@@ -1,8 +1,12 @@
 package se.umu.cs.pulsar;
 
+import java.util.Collections;
+
 import org.apache.pulsar.client.admin.PulsarAdmin;
 import org.apache.pulsar.client.admin.PulsarAdminException;
 import org.apache.pulsar.client.api.PulsarClientException;
+import org.apache.pulsar.client.admin.Functions;
+import org.apache.pulsar.common.functions.FunctionConfig;
 
 public final class PulsarController {
     private static PulsarAdmin admin;
@@ -10,6 +14,8 @@ public final class PulsarController {
 
     private static final String pulsarIp = "10.43.51.255"; // Internal k3s ip
     private static final String pulsarPort = "80";
+
+    private static final String functionFilePath = "conversion-output-handler.jar";
 
     public static void init() {
         // port = p;
@@ -33,6 +39,26 @@ public final class PulsarController {
                 admin.topics().createNonPartitionedTopic("output-topic");
         } catch (PulsarAdminException e) {
             System.err.println("Failed to initalize topics");
+            System.exit(-1);
+        }
+
+
+        Functions functions = admin.functions();
+
+        FunctionConfig fc = new FunctionConfig();
+        fc.setTenant("public");
+        fc.setNamespace("default");
+        fc.setName("output-handler");
+        fc.setRuntime(FunctionConfig.Runtime.JAVA);
+        fc.setJar(functionFilePath);
+        fc.setClassName("se.umu.cs.OutputHandlerFunction");
+        fc.setInputs(Collections.singleton("persistent://public/default/input-topic")); // TODO: Change to output-topic
+        // fc.setParallelism(1);
+
+        try {
+            functions.createFunction(fc, functionFilePath);
+        } catch (PulsarAdminException e) {
+            System.err.println("Failed to create pulsar function: " + e.getMessage());
             System.exit(-1);
         }
     }
