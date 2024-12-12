@@ -1,13 +1,12 @@
-package se.umu.cs;
+package se.umu.cs.pulsar;
 
 import org.apache.pulsar.client.admin.PulsarAdmin;
 import org.apache.pulsar.client.admin.PulsarAdminException;
-import org.checkerframework.common.returnsreceiver.qual.This;
 import org.apache.pulsar.client.api.PulsarClientException;
 
 public final class PulsarController {
     private static PulsarAdmin admin;
-    private static int port;
+    private static int clientId = 0;
 
     private static final String pulsarIp = "10.43.51.255"; // Internal k3s ip
     private static final String pulsarPort = "80";
@@ -32,9 +31,8 @@ public final class PulsarController {
         // System.out.println("after");
     }
 
-    public static String createClientTopic(String ip, String port) {
+    public static String createClientTopic(String id) {
         try {
-            String id = ip + ":" + port + "-topic";
             admin.topics().createNonPartitionedTopic(id);
             return id;
         } catch (PulsarAdminException e) {
@@ -51,5 +49,13 @@ public final class PulsarController {
             System.err.println("Failed to remove client topic: " + e.getMessage());
             return -1;
         }
+    }
+
+    public static String getBrokers() {
+        return null;
+    }
+
+    public static synchronized String getNextId() {
+        return String.valueOf(clientId++);
     }
 }

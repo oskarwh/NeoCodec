@@ -6,6 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 
+import se.umu.cs.pulsar.PulsarController;
+
 @SpringBootApplication
 public class Main {
     public static void main(String[] args) {
