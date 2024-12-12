@@ -26,9 +26,15 @@ public final class PulsarController {
             System.exit(-1);
         }
 
-        // System.out.println("Befreo");
-        // createClientTopic("1", "1");
-        // System.out.println("after");
+        try {
+            if (!topicExists("input-topic"))
+                admin.topics().createNonPartitionedTopic("input-topic");
+            if (!topicExists("output-topic"))
+                admin.topics().createNonPartitionedTopic("output-topic");
+        } catch (PulsarAdminException e) {
+            System.err.println("Failed to initalize topics");
+            System.exit(-1);
+        }
     }
 
     public static String createClientTopic(String id) {
@@ -49,6 +55,18 @@ public final class PulsarController {
             System.err.println("Failed to remove client topic: " + e.getMessage());
             return -1;
         }
+    }
+
+    public static boolean topicExists(String topic) throws PulsarAdminException {
+        int num = admin.topics().getPartitionedTopicMetadata(topic).partitions;
+        if (num == 0) {
+            try {
+                admin.topics().getStats(topic);
+            } catch (PulsarAdminException.NotFoundException e) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public static String getBrokers() {

@@ -1,4 +1,4 @@
-cd ../../shared
+cd ../shared
 mvn clean install -U
-cd ../cluster/pulsar-admin
+cd ../load-handler
 mvn clean package

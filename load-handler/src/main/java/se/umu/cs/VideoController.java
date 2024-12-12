@@ -31,9 +31,19 @@ public class VideoController {
 
         PClient client = new PClient(id, PulsarController.getBrokers());
 
-        NeoFile result;
+        NeoPayload result;
         try {
-            client.send(file);
+            NeoMetadata metadata = NeoMetadata.newBuilder()
+                .setError(0)
+                .setOutputTopic(id + "-topic")
+                .build();
+
+            NeoPayload payload = NeoPayload.newBuilder()
+                .setFile(file)
+                .setMetadata(metadata)
+                .build();
+
+            client.send(payload);
 
             result = client.receive();
         } catch (IOException e) {
@@ -48,6 +58,6 @@ public class VideoController {
             return ResponseEntity.status(HttpStatus.OK).body(null);
         }
 
-        return ResponseEntity.status(HttpStatus.OK).body(result);
+        return ResponseEntity.status(HttpStatus.OK).body(result.getFile());
     }
 }

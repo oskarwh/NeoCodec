@@ -12,12 +12,12 @@ import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.Schema;
 import org.apache.pulsar.client.api.SubscriptionType;
 
-import se.umu.cs.NeoFile;
+import se.umu.cs.NeoPayload;
 
 public class PClient {
     private PulsarClient client;
-    private Producer<NeoFile> producer;
-    private Consumer<NeoFile> consumer;
+    private Producer<NeoPayload> producer;
+    private Consumer<NeoPayload> consumer;
 
     public PClient(String id, String broakers) {
         try {
@@ -25,12 +25,12 @@ public class PClient {
                 .serviceUrl("pulsar://" + broakers)
                 .build();
     
-            this.producer = client.newProducer(Schema.PROTOBUF(NeoFile.class))
+            this.producer = client.newProducer(Schema.PROTOBUF(NeoPayload.class))
                 .topic("input-topic")
                 .create();
 
     
-            this.consumer = client.newConsumer(Schema.PROTOBUF(NeoFile.class))
+            this.consumer = client.newConsumer(Schema.PROTOBUF(NeoPayload.class))
                 .topic(id + "-topic")
                 .subscriptionName(id + "-subscription")
                 .subscriptionType(SubscriptionType.Exclusive)
@@ -41,7 +41,7 @@ public class PClient {
         }
     }
 
-    public void send(NeoFile file) throws IOException {
+    public void send(NeoPayload file) throws IOException {
         this.producer.send(file);
     }
 
@@ -51,8 +51,8 @@ public class PClient {
      * @return
      * @throws IOException
      */
-    public NeoFile receive() throws IOException {
-        Message<NeoFile> msg = this.consumer.receive();
+    public NeoPayload receive() throws IOException {
+        Message<NeoPayload> msg = this.consumer.receive();
         return msg.getValue();
     }
 }
