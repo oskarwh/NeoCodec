@@ -31,3 +31,6 @@ replay_pid*
 
 # Custom files
 *stderr
+
+*venv/
+*__pycache__/

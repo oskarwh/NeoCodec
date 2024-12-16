@@ -22,21 +22,15 @@ import net.bramp.ffmpeg.FFprobe;
 import net.bramp.ffmpeg.builder.FFmpegBuilder;
 
 public class Converter {
-    /**
-     * args[0] = Comma separated list of brokers
-     */  
+    private static final String PULSAR_BROKERS = "pulsar://10.43.51.255:6650";
+    
     public static void main(String[] args) throws IOException {
-        String brokers = args[0];
-
-        if (brokers == null || brokers.isEmpty())
-            throw new IllegalArgumentException("Usage: java -jar converter.jar <brokers>");
-        
         PulsarClient client = PulsarClient.builder()
-            .serviceUrl("pulsar://" + brokers)
+            .serviceUrl(PULSAR_BROKERS)
             .build();
 
         
-        Consumer<byte[]> consumer = client.newConsumer()
+        Consumer<NeoPayload> consumer = client.newConsumer(Schema.PROTOBUF(NeoPayload.class))
             .topic("input-topic")
             .subscriptionName("input-subscription")
             .subscriptionType(SubscriptionType.Shared)
@@ -44,25 +38,24 @@ public class Converter {
             .subscribe();
         
         while (true) {
-            Message<byte[]> msg = consumer.receive();
+            Message<NeoPayload> msg = consumer.receive();
 
             try {
-                ProtoPayload vm = Serializer.deserialize(msg.getData());
+                NeoFile file = msg.getValue().getFile();
+                String sourceType = "." + file.getFileName().reverse().split(".")[0].reverse();
+                String targetType = "." + file.getTargetType().getValueDescriptor().getName();
 
                 // Create temporary file 
                 File tempFile;
-                if (vm.getSourceType().charAt(0) == '.')
-                    tempFile = File.createTempFile("input", vm.getSourceType());
-                else
-                    tempFile = File.createTempFile(vm.getSource(), "." + vm.getSourceType());
+                tempFile = File.createTempFile("input", sourceType);
 
                 // Write data to temporary file
                 try (FileOutputStream os = new FileOutputStream(tempFile)) {
-                    os.write(vm.getData().toByteArray());
+                    os.write(file.getFile().toByteArray());
                 }
                 
                 // Convert file and replace double dots with single dots
-                String output = vm.getTarget() + "." + vm.getTargetType().replace("..", ".");
+                String output = "output" + targetType;
                 convert(tempFile.getAbsolutePath(), output);
 
                 // Create output payload
@@ -73,19 +66,17 @@ public class Converter {
                 }
                 
                 ByteString dataByteString = ByteString.copyFrom(byteArray);
-                ProtoPayload.Builder vmBuilder = ProtoPayload.newBuilder()
-                    .setSource(vm.getSource())
-                    .setSourceType(vm.getTargetType())
-                    .setTarget(vm.getSource())
-                    .setTargetType(vm.getSourceType())
-                    .setData(dataByteString)
-                    .setIndex(vm.getIndex());
-
-                // Serialize and send output payload
-                byte[] outputPayload = Serializer.serialize(vmBuilder.build());
+                NeoPayload outputPayload = NeoPayload.newBuilder()
+                    .setMetadata(msg.getValue().getMetadata())
+                    .setFile(NeoFile.newBuilder()
+                        .setSourceType(file.getTargetType())
+                        .setTargetType(file.getTargetType())
+                        .setFile(dataByteString)
+                        .build())
+                    .build();
 
                 // Send output payload to next topic
-                Producer<byte[]> producer = client.newProducer(Schema.BYTES)
+                Producer<NeoPayload> producer = client.newProducer(Schema.PROTOBUF(NeoPayload.class))
                     .topic("output-topic")
                     .create();
 
@@ -95,6 +86,8 @@ public class Converter {
                     .thenAccept(mId -> {
                         System.out.println("Message " + mId + " was succefully delivered.");
                     });
+
+                producer.close();
 
                 consumer.acknowledge(msg);
             } catch (Exception e) {
