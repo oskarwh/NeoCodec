@@ -7,6 +7,7 @@ import org.apache.pulsar.client.admin.PulsarAdmin;
 import org.apache.pulsar.client.admin.PulsarAdminException;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.admin.Functions;
+import org.apache.pulsar.common.policies.data.FunctionStatus;
 import org.apache.pulsar.common.functions.FunctionConfig;
 import org.apache.pulsar.common.policies.data.InactiveTopicPolicies;
 import org.apache.pulsar.common.policies.data.InactiveTopicDeleteMode;
@@ -57,9 +58,9 @@ public final class PulsarController {
         // Remove function if it exists
         FunctionConfig fc = null;
         try {
-            fc = admin.functions().getFunction(tenant, namespace, "output-handler");
+            fc = admin.functions().getFunction(tenant, inOutNamespace, "output-handler");
             if (fc != null) {
-                admin.functions().deleteFunction(tenant, namespace, "output-handler");
+                admin.functions().deleteFunction(tenant, inOutNamespace, "output-handler");
             }
         } catch (PulsarAdminException e) {
             System.err.println("Failed to delete pulsar function: " + e.getMessage());
@@ -69,18 +70,49 @@ public final class PulsarController {
         Functions functions = admin.functions();
         fc = new FunctionConfig();
         fc.setTenant(tenant);
-        fc.setNamespace(namespace);
+        fc.setNamespace(inOutNamespace);
         fc.setName("output-handler");
         fc.setRuntime(FunctionConfig.Runtime.JAVA);
         fc.setJar(functionFilePath);
         fc.setClassName("se.umu.cs.OutputHandlerFunction");
-        fc.setInputs(Collections.singleton(base + "input-topic")); // TODO: Change to output-topic
+        fc.setInputs(Collections.singleton("input-topic")); // TODO: Change to output-topic
+        fc.setParallelism(1);
 
         try {
             functions.createFunction(fc, functionFilePath);
         } catch (PulsarAdminException e) {
             System.err.println("Failed to create pulsar function: " + e.getMessage());
             e.printStackTrace(System.err);
+            System.exit(-1);
+        }
+
+        // try {
+        //     Thread.sleep(5000); // Wait for function to start
+        // } catch(Exception e) {
+        //     System.err.println("Failed to sleep: " + e.getMessage());
+        //     System.exit(-1);
+        // }
+
+        // Check function status
+        try {    
+            fc = null;
+            fc = admin.functions().getFunction(tenant, inOutNamespace, "output-handler");
+            if (fc == null){
+                System.err.println("Function is not created.");
+                System.exit(-1);
+            }
+            // Check if function is running
+            FunctionStatus status = functions.getFunctionStatus(tenant, inOutNamespace, "output-handler");
+            if (status.getNumInstances() == 0) {
+                System.err.println("Function is not found. Exiting...");
+                System.exit(-1);
+            }
+            if (status.getNumRunning() == 0) {
+                System.err.println("Function is not running. Exiting...");
+                System.exit(-1);
+            }
+        } catch(PulsarAdminException e) {
+            System.err.println("Failed to check function status: " + e.getMessage());
             System.exit(-1);
         }
     }
@@ -114,18 +146,14 @@ public final class PulsarController {
             System.exit(-1);
         }
         
-        System.out.println("Before");
         if(cleanOld) {
             try {
                 // Kill all previous client topics
-                System.out.println("1");
                 List<String> topics = admin.topics().getList(tenant + "/" + namespace);
-                System.out.println("2");
                 
                 // Delete each topic
                 for (String topic : topics) {
-                    System.out.println(topic);
-                    admin.topics().delete(topic, true, true);
+                    admin.topics().delete(topic, true);
                     System.out.println("Deleted old client topic: " + topic);
                 }
 

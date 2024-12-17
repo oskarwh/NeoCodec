@@ -1,15 +1,17 @@
 from locust import HttpUser, task, between
 from os import walk
 import random, requests
+import sys
+sys.path.append('proto')
 
-import payload_pb2, metadata_pb2, file_pb2, filetypes_pb2
+from proto import payload_pb2, metadata_pb2, file_pb2, filetypes_pb2
 
 import pulsar
 
 
 INPUT_TOPIC = "persistent://public/inout/input-topic"
 OUTPUT_TOPIC = "persistent://public/neocodec/"
-VIDEO_PATH = "/videos"
+VIDEO_PATH = "./videos"
 VIDEO_TYPE_LIST = filetypes_pb2.NeoFileTypes.items()
 
 
@@ -31,7 +33,7 @@ class QuickstartUser(HttpUser):
             if r.status_code != 200:
                 print("Get request Error (None 200)")
                 exit(-1)
-            self.id = r.content
+            self.id = int(r.content)
         except :
             print("Failed Get call to cluster")
             exit(-1)
@@ -39,7 +41,7 @@ class QuickstartUser(HttpUser):
         print("ID Fetched: " + str(self.id))
 
         self.client = pulsar.Client('pulsar://localhost:6650')
-        self.producer = self.client.create_producer(INPUT_TOPIC)
+        self.producer = self.client.create_producer(INPUT_TOPIC, chunking_enabled=True)
         self.consumer = self.client.subscribe(OUTPUT_TOPIC + str(self.id), "locust") # Consume from client specific output topic
         print("Pulsar Client Started")
 
@@ -47,8 +49,9 @@ class QuickstartUser(HttpUser):
     @task
     def produce_message(self):
         print("Producing Message...")
-        self.producer.post(self.fetch_message())
+        self.producer.send(self.fetch_message().SerializeToString())
 
+        print("Consuming message")
         msg = self.consumer.receive()
 
         try:
@@ -57,6 +60,7 @@ class QuickstartUser(HttpUser):
             self.consumer.acknowledge(msg)
         except Exception:
             # Message failed to be processed
+            print("Failed to process message")
             self.consumer.negative_acknowledge(msg)
 
         
