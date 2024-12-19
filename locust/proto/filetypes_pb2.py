@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0f\x66iletypes.proto\x12\tse.umu.cs*<\n\x0cNeoFileTypes\x12\x07\n\x03MP4\x10\x00\x12\x07\n\x03\x41VI\x10\x01\x12\x07\n\x03MKV\x10\x02\x12\x07\n\x03MOV\x10\x03\x12\x08\n\x04WEBM\x10\x04\x42\"\n\tse.umu.csB\x13NeoFileTypesMessageP\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0f\x66iletypes.proto\x12\tse.umu.cs*\x17\n\x0cNeoFileTypes\x12\x07\n\x03\x41VI\x10\x00\x42\"\n\tse.umu.csB\x13NeoFileTypesMessageP\x01\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -33,5 +33,5 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'\n\tse.umu.csB\023NeoFileTypesMessageP\001'
   _globals['_NEOFILETYPES']._serialized_start=30
-  _globals['_NEOFILETYPES']._serialized_end=90
+  _globals['_NEOFILETYPES']._serialized_end=53
 # @@protoc_insertion_point(module_scope)

@@ -21,7 +21,7 @@ public final class PulsarController {
     private static PulsarAdmin admin;
     private static int clientId = 0;
 
-    private static final String pulsarIp = "10.43.248.237"; // Internal k3s ip
+    private static final String pulsarIp = "10.43.101.106"; // Internal k3s ip
     private static final String pulsarPort = "80";
 
     private static final String functionFilePath = "conversion-output-handler.jar";
@@ -69,14 +69,15 @@ public final class PulsarController {
         // Create new pulsar function
         Functions functions = admin.functions();
         fc = new FunctionConfig();
+        fc.setJar(functionFilePath);
+        fc.setClassName("se.umu.cs.OutputHandlerFunction");
         fc.setTenant(tenant);
         fc.setNamespace(inOutNamespace);
         fc.setName("output-handler");
+        fc.setInputs(Collections.singleton(inOutBase + "output-topic")); // TODO: Change to output-topic
+        fc.setOutput(inOutBase + "log-topic");
         fc.setRuntime(FunctionConfig.Runtime.JAVA);
-        fc.setJar(functionFilePath);
-        fc.setClassName("se.umu.cs.OutputHandlerFunction");
-        fc.setInputs(Collections.singleton("input-topic")); // TODO: Change to output-topic
-        fc.setParallelism(1);
+        fc.setParallelism(3);
 
         try {
             functions.createFunction(fc, functionFilePath);
@@ -86,18 +87,10 @@ public final class PulsarController {
             System.exit(-1);
         }
 
-        // try {
-        //     Thread.sleep(5000); // Wait for function to start
-        // } catch(Exception e) {
-        //     System.err.println("Failed to sleep: " + e.getMessage());
-        //     System.exit(-1);
-        // }
-
         // Check function status
         try {    
-            fc = null;
-            fc = admin.functions().getFunction(tenant, inOutNamespace, "output-handler");
-            if (fc == null){
+            FunctionConfig createdFc = admin.functions().getFunction(tenant, inOutNamespace, "output-handler");
+            if (createdFc == null){
                 System.err.println("Function is not created.");
                 System.exit(-1);
             }
@@ -107,10 +100,10 @@ public final class PulsarController {
                 System.err.println("Function is not found. Exiting...");
                 System.exit(-1);
             }
-            if (status.getNumRunning() == 0) {
-                System.err.println("Function is not running. Exiting...");
-                System.exit(-1);
-            }
+            // if (status.getNumRunning() == 0) {
+            //     System.err.println("Function is not running. Exiting...");
+            //     System.exit(-1);
+            // }
         } catch(PulsarAdminException e) {
             System.err.println("Failed to check function status: " + e.getMessage());
             System.exit(-1);
@@ -119,6 +112,12 @@ public final class PulsarController {
 
     private static void configurePulsar(boolean cleanOld){
          try {
+            SchemaInfo si2 = SchemaInfo.builder()
+                .name("NeoPayload")
+                .type(SchemaType.PROTOBUF)
+                .schema(NeoPayload.getDescriptor().toProto().toByteArray())
+                .build();
+
             if (!namespaceExists(namespace)) // For Client Topics
                 admin.namespaces().createNamespace(tenant + "/" + namespace);
             if (!namespaceExists(inOutNamespace)) // For general topics
@@ -130,7 +129,11 @@ public final class PulsarController {
             }
             if (!topicExists(inOutBase, "output-topic")) {
                 admin.topics().createNonPartitionedTopic(inOutBase + "output-topic");
-                admin.schemas().createSchema(inOutBase + "output-topic", si);
+                admin.schemas().createSchema(inOutBase + "output-topic", si2);
+            }
+            if (!topicExists(inOutBase, "log-topic")) {
+                admin.topics().createNonPartitionedTopic(inOutBase + "log-topic");
+                admin.schemas().createSchema(inOutBase + "log-topic", si);
             }
 
             InactiveTopicPolicies policies = new InactiveTopicPolicies(
@@ -150,6 +153,7 @@ public final class PulsarController {
             try {
                 // Kill all previous client topics
                 List<String> topics = admin.topics().getList(tenant + "/" + namespace);
+                System.out.println(topics);
                 
                 // Delete each topic
                 for (String topic : topics) {

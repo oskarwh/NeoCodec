@@ -13,12 +13,13 @@ INPUT_TOPIC = "persistent://public/inout/input-topic"
 OUTPUT_TOPIC = "persistent://public/neocodec/"
 VIDEO_PATH = "./videos"
 VIDEO_TYPE_LIST = filetypes_pb2.NeoFileTypes.items()
+print(VIDEO_TYPE_LIST)
 
 
 REST_URL = "http://localhost:8095/api/converter"
 
 class QuickstartUser(HttpUser):
-    wait_time = between(1, 5)
+    wait_time = between(5, 6)
 
     def on_start(self):
         print("Starting Locust Client")
@@ -76,6 +77,7 @@ class QuickstartUser(HttpUser):
         print(video_name)
         with open(VIDEO_PATH + "/" + video_name, 'rb') as file:
             video_bytes = file.read()
+
         # Randomize conversion
         index = random.randint(0, len(VIDEO_TYPE_LIST)-1)
         target_type = VIDEO_TYPE_LIST[index][0]
@@ -88,5 +90,6 @@ class QuickstartUser(HttpUser):
         payload.file.targetType = target_type
 
         payload.metadata.clientId = self.id
+        payload.metadata.error = 0
 
         return payload
