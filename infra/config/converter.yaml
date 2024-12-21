@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: converter 
+  namespace: converter 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      bb: converter
+  template:
+    metadata:
+      labels:
+        bb: converter
+    spec:
+      containers:
+        - name: converter
+          image: larssonludvig/neocodec:converter
+          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "0.2"
+            limits:
+              memory: "1Gi"
+              cpu: "0.2"
+      imagePullSecrets:
+        - name: dockercred
+

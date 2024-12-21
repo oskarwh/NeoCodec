@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pulsar-proxy-service
+  namespace: pulsar
+spec:
+  selector:
+    app: pulsar
+    release: pulsar
+    component: proxy
+  ports:
+    - name: admin
+      protocol: TCP
+      port: 90
+      targetPort: 80
+    - name: pulsar
+      protocol: TCP
+      port: 6650
+      targetPort: 6650
+  type: LoadBalancer

@@ -1,0 +1,117 @@
+namespace: "pulsar"
+namespaceCreate: false
+
+volumes:
+    persistence: true
+
+affinity:
+    anti_affinity: false
+
+## Components
+##
+## Control what components of Apache Pulsar to deploy for the cluster
+components:
+    # zookeeper
+    zookeeper: true
+    # bookkeeper
+    bookkeeper: true
+    # bookkeeper - autorecovery
+    autorecovery: true
+    # broker
+    broker: true
+    # functions
+    functions: true
+    # proxy
+    proxy: true
+    # toolset
+    toolset: true
+    # pulsar manager
+    pulsar_manager: true
+
+## Settings
+zookeeper:
+  #replicaCount: 1
+    volumes:
+        persistance: true
+        data:
+            name: data
+            size: 2Gi
+    resources:
+        requests:
+            cpu: "0.1"
+            memory: "128Mi"
+
+bookkeeper:
+    replicaCount: 3
+    volumes:
+        journal:
+            name: journal
+            size: 2Gi
+        ledgers:
+            name: ledger
+            size: 2Gi
+    resources:
+        requests:
+            cpu: "0.1"
+            memory: "128Mi"
+
+autorecovery:
+  #replicaCount: 1
+    resources:
+        requests:
+            cpu: "0.1"
+            memory: "128Mi"
+
+broker:
+    replicaCount: 3
+  #  config:
+  #      managedLedgerDefaultAckQuorum: 1
+  #      managedLedgerDefaultEnsembleSize: 1
+  #      managedLedgerDefaultWriteQuorum: 1
+    resources:
+        requests:
+            cpu: "0.1"
+            memory: "128Mi"
+    env:
+    - name: functionsWorkerEnabled
+      value: "true"
+
+functions:
+  #replicaCount: 1
+    resources:
+        requests:
+            cpu: "0.1"
+            memory: "128Mi"
+
+proxy:
+  #replicaCount: 1
+    webSocket:
+        enabled: false
+    resources:
+        requests:
+            cpu: "0.1"
+            memory: "128Mi"
+
+## Monitoring Components
+##
+## Control what components of the kube-prometheus-stack Helm chart to deploy for the cluster
+kube-prometheus-stack:
+    # Control deployment of this Helm chart entirely
+    enabled: true
+    # prometheus
+    prometheus:
+        prometheusSpec:
+            remoteWrite:
+                - url: "https://prometheus-prod-39-prod-eu-north-0.grafana.net/api/prom/push"
+                  basicAuth:
+                      username:
+                          name: kubepromsecret
+                          key: username
+                      password:
+                          name: kubepromsecret
+                          key: password
+    promtheus-node-exporter:
+        enabled: true
+    # grafana
+    grafana:
+        enabled: false

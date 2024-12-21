@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pulsar-manager-service
+  namespace: pulsar
+spec:
+  selector:
+    app: pulsar
+    release: pulsar
+    component: pulsar-manager
+  ports:
+    - name: admin
+      protocol: TCP
+      port: 7750 
+      targetPort: 7750
+    - name: default 
+      protocol: TCP
+      port: 9527
+      targetPort: 9527
+  type: LoadBalancer
+

@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: middleware
+  namespace: middleware 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      bb: middleware
+  template:
+    metadata:
+      labels:
+        bb: middleware
+    spec:
+      containers:
+        - name: middleware
+          image: larssonludvig/neocodec:middleware
+          imagePullPolicy: Always
+          resources:
+            requests:
+              ephemeral-storage: "1Gi"
+            limits:
+              ephemeral-storage: "2Gi"
+      imagePullSecrets:
+        - name: dockercred

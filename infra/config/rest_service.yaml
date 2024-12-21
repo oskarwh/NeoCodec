@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  name: middleware-service
+  namespace: middleware
+spec:
+  ports:
+  - port: 8095
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    bb: middleware
+  type: LoadBalancer
+
