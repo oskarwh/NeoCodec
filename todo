@@ -1,0 +1,6 @@
+* Better handling clientId and the clientTopic, need to be able to remove old clientTopics when they are no longer used.
+* HPA Scaling of converter (KEDA)
+* Maybe use more instances of middleware and pulsar functions
+* Handling of Error messages in Client
+* Client for receiving and verifying conversion
+* New Dashboard showing an increase in topic load and then scaling of converter pods

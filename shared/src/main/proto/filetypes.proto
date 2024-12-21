@@ -7,9 +7,9 @@ option java_outer_classname = "NeoFileTypesMessage";
 package se.umu.cs;
 
 enum NeoFileTypes {
-    MP4 = 0;
-    AVI = 1;
-    MKV = 2;
-    MOV = 3;
-    WEBM = 4;
+    AVI = 0;
+    // MP4 = 1;
+    // MKV = 2;
+    // MOV = 3;
+    // WEBM = 4;
 }

@@ -7,6 +7,7 @@ import org.apache.pulsar.client.admin.PulsarAdmin;
 import org.apache.pulsar.client.admin.PulsarAdminException;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.admin.Functions;
+import org.apache.pulsar.common.policies.data.FunctionStatus;
 import org.apache.pulsar.common.functions.FunctionConfig;
 import org.apache.pulsar.common.policies.data.InactiveTopicPolicies;
 import org.apache.pulsar.common.policies.data.InactiveTopicDeleteMode;
@@ -20,7 +21,7 @@ public final class PulsarController {
     private static PulsarAdmin admin;
     private static int clientId = 0;
 
-    private static final String pulsarIp = "10.43.248.237"; // Internal k3s ip
+    private static final String pulsarIp = "10.43.101.106"; // Internal k3s ip
     private static final String pulsarPort = "80";
 
     private static final String functionFilePath = "conversion-output-handler.jar";
@@ -57,9 +58,9 @@ public final class PulsarController {
         // Remove function if it exists
         FunctionConfig fc = null;
         try {
-            fc = admin.functions().getFunction(tenant, namespace, "output-handler");
+            fc = admin.functions().getFunction(tenant, inOutNamespace, "output-handler");
             if (fc != null) {
-                admin.functions().deleteFunction(tenant, namespace, "output-handler");
+                admin.functions().deleteFunction(tenant, inOutNamespace, "output-handler");
             }
         } catch (PulsarAdminException e) {
             System.err.println("Failed to delete pulsar function: " + e.getMessage());
@@ -68,13 +69,15 @@ public final class PulsarController {
         // Create new pulsar function
         Functions functions = admin.functions();
         fc = new FunctionConfig();
-        fc.setTenant(tenant);
-        fc.setNamespace(namespace);
-        fc.setName("output-handler");
-        fc.setRuntime(FunctionConfig.Runtime.JAVA);
         fc.setJar(functionFilePath);
         fc.setClassName("se.umu.cs.OutputHandlerFunction");
-        fc.setInputs(Collections.singleton(base + "input-topic")); // TODO: Change to output-topic
+        fc.setTenant(tenant);
+        fc.setNamespace(inOutNamespace);
+        fc.setName("output-handler");
+        fc.setInputs(Collections.singleton(inOutBase + "output-topic")); // TODO: Change to output-topic
+        fc.setOutput(inOutBase + "log-topic");
+        fc.setRuntime(FunctionConfig.Runtime.JAVA);
+        fc.setParallelism(3);
 
         try {
             functions.createFunction(fc, functionFilePath);
@@ -83,10 +86,38 @@ public final class PulsarController {
             e.printStackTrace(System.err);
             System.exit(-1);
         }
+
+        // Check function status
+        try {    
+            FunctionConfig createdFc = admin.functions().getFunction(tenant, inOutNamespace, "output-handler");
+            if (createdFc == null){
+                System.err.println("Function is not created.");
+                System.exit(-1);
+            }
+            // Check if function is running
+            FunctionStatus status = functions.getFunctionStatus(tenant, inOutNamespace, "output-handler");
+            if (status.getNumInstances() == 0) {
+                System.err.println("Function is not found. Exiting...");
+                System.exit(-1);
+            }
+            // if (status.getNumRunning() == 0) {
+            //     System.err.println("Function is not running. Exiting...");
+            //     System.exit(-1);
+            // }
+        } catch(PulsarAdminException e) {
+            System.err.println("Failed to check function status: " + e.getMessage());
+            System.exit(-1);
+        }
     }
 
     private static void configurePulsar(boolean cleanOld){
          try {
+            SchemaInfo si2 = SchemaInfo.builder()
+                .name("NeoPayload")
+                .type(SchemaType.PROTOBUF)
+                .schema(NeoPayload.getDescriptor().toProto().toByteArray())
+                .build();
+
             if (!namespaceExists(namespace)) // For Client Topics
                 admin.namespaces().createNamespace(tenant + "/" + namespace);
             if (!namespaceExists(inOutNamespace)) // For general topics
@@ -98,7 +129,11 @@ public final class PulsarController {
             }
             if (!topicExists(inOutBase, "output-topic")) {
                 admin.topics().createNonPartitionedTopic(inOutBase + "output-topic");
-                admin.schemas().createSchema(inOutBase + "output-topic", si);
+                admin.schemas().createSchema(inOutBase + "output-topic", si2);
+            }
+            if (!topicExists(inOutBase, "log-topic")) {
+                admin.topics().createNonPartitionedTopic(inOutBase + "log-topic");
+                admin.schemas().createSchema(inOutBase + "log-topic", si);
             }
 
             InactiveTopicPolicies policies = new InactiveTopicPolicies(
@@ -114,18 +149,15 @@ public final class PulsarController {
             System.exit(-1);
         }
         
-        System.out.println("Before");
         if(cleanOld) {
             try {
                 // Kill all previous client topics
-                System.out.println("1");
                 List<String> topics = admin.topics().getList(tenant + "/" + namespace);
-                System.out.println("2");
+                System.out.println(topics);
                 
                 // Delete each topic
                 for (String topic : topics) {
-                    System.out.println(topic);
-                    admin.topics().delete(topic, true, true);
+                    admin.topics().delete(topic, true);
                     System.out.println("Deleted old client topic: " + topic);
                 }
 
