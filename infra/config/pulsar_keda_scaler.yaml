@@ -11,9 +11,9 @@ spec:
   - type: pulsar
     metadata:
       adminURL: http://10.43.101.106:80
-      topic: persistent://public/neocodec/input-topic
-      isPartitionedTopic: false
-      subscription: scaler
+      topic: persistent://public/inout/input-topic
+      isPartitionedTopic: "false"
+      subscription: keda-scaler
       msgBacklogThreshold: '5'
   cooldownPeriod: 100
   maxReplicaCount: 20
