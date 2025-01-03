@@ -1,25 +1,25 @@
 from locust import HttpUser, task, between
+import locust.runners
 from os import walk
 import random, requests
 import sys
+import pulsar
+
 sys.path.append('proto')
 
 from proto import payload_pb2, metadata_pb2, file_pb2, filetypes_pb2
-
-import pulsar
 
 
 INPUT_TOPIC = "persistent://public/inout/input-topic"
 OUTPUT_TOPIC = "persistent://public/neocodec/"
 VIDEO_PATH = "./videos"
 VIDEO_TYPE_LIST = filetypes_pb2.NeoFileTypes.items()
-print(VIDEO_TYPE_LIST)
-
-
 REST_URL = "http://localhost:8095/api/converter"
+locust.runners.HEARTBEAT_INTERVAL = 30
 
 class QuickstartUser(HttpUser):
-    wait_time = between(5, 6)
+    wait_time = between(10, 20)
+    host = "http://localhost:23456"
 
     def on_start(self):
         print("Starting Locust Client")
@@ -43,30 +43,28 @@ class QuickstartUser(HttpUser):
 
         self.client = pulsar.Client('pulsar://localhost:6650')
         self.producer = self.client.create_producer(INPUT_TOPIC, chunking_enabled=True)
-        self.consumer = self.client.subscribe(OUTPUT_TOPIC + str(self.id), "locust") # Consume from client specific output topic
+        self.consumer = self.client.subscribe(OUTPUT_TOPIC + str(self.id), "locust", message_listener=self.receive_message) # Consume from client specific output topic
         print("Pulsar Client Started")
-
 
     @task
     def produce_message(self):
         print("Producing Message...")
         self.producer.send(self.fetch_message().SerializeToString())
 
-        print("Consuming message")
-        msg = self.consumer.receive()
+    def on_stop(self):
+        print("Stopping Locust Client")
+        self.client.close()
 
+    def receive_message(self, consumer, message):
+        print("Message consumed")
         try:
-            print("Received message id='{}'".format(msg.message_id()))
+            print("Received message id='{}'".format(message.message_id()))
             # Acknowledge successful processing of the message
-            self.consumer.acknowledge(msg)
+            consumer.acknowledge(message)
         except Exception:
             # Message failed to be processed
             print("Failed to process message")
-            self.consumer.negative_acknowledge(msg)
-
-        
-        
-
+            consumer.negative_acknowledge(message)
 
     def fetch_message(self):
         # Fetch file to convert
