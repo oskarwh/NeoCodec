@@ -17,8 +17,14 @@ import se.umu.cs.NeoPayload;
 import org.apache.pulsar.common.schema.SchemaInfo;
 import org.apache.pulsar.common.schema.SchemaType;
 
+import com.hazelcast.client.HazelcastClient;
+import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.core.HazelcastInstance;
+
+
 public final class PulsarController {
     private static PulsarAdmin admin;
+    private static HazelcastInstance hazelcastClient;
     private static int clientId = 0;
 
     private static final String pulsarIp = "10.43.101.106"; // Internal k3s ip
@@ -35,6 +41,13 @@ public final class PulsarController {
     private static SchemaInfo si = null;
 
     public static void init() {
+        // Create hazelcast client
+        ClientConfig clientConfig = new ClientConfig();
+        clientConfig.getNetworkConfig().addAddress("10.43.90.205"); // Cluster IP
+        hazelcastClient = HazelcastClient.newHazelcastClient(clientConfig);
+        // Set request ID to zero
+        hazelcastClient.getCPSubsystem().getAtomicLong("requestId").set(0);
+
         try {
             String url = "http://" + pulsarIp + ":" + pulsarPort;
             admin = PulsarAdmin.builder()
@@ -217,6 +230,7 @@ public final class PulsarController {
     }
 
     public static synchronized String getNextId() {
-        return String.valueOf(clientId++);
+        return String.valueOf(hazelcastClient.getCPSubsystem().getAtomicLong("requestId").getAndIncrement());
+        //return String.valueOf(clientId++);
     }
 }
