@@ -13,7 +13,7 @@ public class OutputHandlerFunction implements Function<NeoPayload, Void> {
         // Publish the message to the determined output topic
         System.out.println("----------| Puslar Function Log |----------");
         try {
-            String clientTopic = String.valueOf(data.getMetadata().getClientId());
+            String clientTopic = Long.toString(data.getMetadata().getClientId());
             System.out.println("Sendning on Output Topic: " + clientTopic);
             context.newOutputMessage(base + clientTopic, Schema.PROTOBUF(NeoPayload.class)).value(data).send(); 
         } catch (Exception e) {

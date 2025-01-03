@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0emetadata.proto\x12\tse.umu.cs\"D\n\x0bNeoMetadata\x12\x10\n\x08\x63lientId\x18\x01 \x01(\x05\x12\r\n\x05\x65rror\x18\x02 \x01(\x05\x12\x14\n\x0c\x65rrorMessage\x18\x03 \x01(\tB!\n\tse.umu.csB\x12NeoMetadataMessageP\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0emetadata.proto\x12\tse.umu.cs\"D\n\x0bNeoMetadata\x12\x10\n\x08\x63lientId\x18\x01 \x01(\x03\x12\r\n\x05\x65rror\x18\x02 \x01(\x05\x12\x14\n\x0c\x65rrorMessage\x18\x03 \x01(\tB!\n\tse.umu.csB\x12NeoMetadataMessageP\x01\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)

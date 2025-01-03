@@ -43,11 +43,9 @@ public final class PulsarController {
     public static void init() {
         // Create hazelcast client
         ClientConfig clientConfig = new ClientConfig();
-        clientConfig.getNetworkConfig().addAddress("10.43.90.205"); // Cluster IP
+        clientConfig.getNetworkConfig().addAddress("hazelcast"); // Cluster IP
         hazelcastClient = HazelcastClient.newHazelcastClient(clientConfig);
-        // Set request ID to zero
-        hazelcastClient.getCPSubsystem().getAtomicLong("requestId").set(0);
-
+            
         try {
             String url = "http://" + pulsarIp + ":" + pulsarPort;
             admin = PulsarAdmin.builder()
@@ -230,7 +228,7 @@ public final class PulsarController {
     }
 
     public static synchronized String getNextId() {
-        return String.valueOf(hazelcastClient.getCPSubsystem().getAtomicLong("requestId").getAndIncrement());
+        return Long.toString(hazelcastClient.getFlakeIdGenerator("requestId").newId());
         //return String.valueOf(clientId++);
     }
 }

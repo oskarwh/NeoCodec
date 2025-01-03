@@ -4,6 +4,7 @@ from os import walk
 import random, requests
 import sys
 import pulsar
+import time
 
 sys.path.append('proto')
 
@@ -43,20 +44,22 @@ class QuickstartUser(HttpUser):
 
         self.client = pulsar.Client('pulsar://localhost:6650')
         self.producer = self.client.create_producer(INPUT_TOPIC, chunking_enabled=True)
-        self.consumer = self.client.subscribe(OUTPUT_TOPIC + str(self.id), "locust", message_listener=self.receive_message) # Consume from client specific output topic
+        self.consumer  = self.client.subscribe(OUTPUT_TOPIC + str(self.id), "locust", message_listener=self.receive_message) # Consume from client specific output topic
         print("Pulsar Client Started")
 
     @task
     def produce_message(self):
         print("Producing Message...")
+        self.start_time = time.time()
         self.producer.send(self.fetch_message().SerializeToString())
 
     def on_stop(self):
         print("Stopping Locust Client")
+        self.consumer.close()
         self.client.close()
 
     def receive_message(self, consumer, message):
-        print("Message consumed")
+        print("Message consumed after {} seconds".format(time.time() - self.start_time))
         try:
             print("Received message id='{}'".format(message.message_id()))
             # Acknowledge successful processing of the message

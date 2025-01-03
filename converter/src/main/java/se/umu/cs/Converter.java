@@ -98,15 +98,15 @@ public class Converter {
                 // TODO: For testing purposes, result will be thrown
                 System.out.println("Successfull convertion of file: " + file.getFileName() + " to " + file.getTargetType().getValueDescriptor().getName() + " format.");
             } catch (Exception e) {
-                System.err.println("Failed to convert file: " + e.getMessage());
+                System.err.println("FFmpeg failed to convert file, please check your input file for clues: " + e.getMessage());
                 
                 result = NeoPayload.newBuilder()
                     .setMetadata(NeoMetadata.newBuilder()
+                        .setClientId(msg.getValue().getMetadata().getClientId())
                         .setError(-1)
                         .setErrorMessage(e.getMessage())
                         .build())
                     .build();
-                        
             }
             
             consumer.acknowledge(msg);
