@@ -3,8 +3,11 @@ Done:
 * Maybe use more instances of middleware and pulsar functions
 * Client for receiving and verifying conversion
 * New Dashboard showing an increase in topic load and then scaling of converter pods
+* Handling of Error messages in Client
+
 
 In progress:
 * HPA Scaling of converter (KEDA)
-* Handling of Error messages in Client
 * Fault tolerance, Chaos Mesh
+* Fix video stuck in topic on failure
+* Fix some kind of video id, uniqe to the request id
