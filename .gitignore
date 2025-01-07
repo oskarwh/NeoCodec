@@ -35,3 +35,4 @@ replay_pid*
 *venv/
 *__pycache__/
 *out/
+*results.csv

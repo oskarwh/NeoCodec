@@ -27,8 +27,8 @@ public final class PulsarController {
     private static HazelcastInstance hazelcastClient;
     private static int clientId = 0;
 
-    private static final String pulsarIp = "10.43.101.106"; // Internal k3s ip
-    private static final String pulsarPort = "80";
+    private static final String pulsarIp = "10.43.62.94"; // Internal k3s ip
+    private static final String pulsarPort = "90";
 
     private static final String functionFilePath = "conversion-output-handler.jar";
     
@@ -64,42 +64,34 @@ public final class PulsarController {
             .build();
 
         System.out.println("configure pulsar");
-        configurePulsar(true);
+        configurePulsar();
 
         // Remove function if it exists
+        // FunctionConfig fc = null;
+        // try {
+        //     fc = admin.functions().getFunction(tenant, inOutNamespace, "output-handler");
+        //     if (fc != null) {
+        //         admin.functions().deleteFunction(tenant, inOutNamespace, "output-handler");
+        //     }
+        // } catch (PulsarAdminException e) {
+        //     System.err.println("Failed to delete pulsar function: " + e.getMessage());
+        // }
+
+        // Create new pulsar function
         FunctionConfig fc = null;
         try {
             fc = admin.functions().getFunction(tenant, inOutNamespace, "output-handler");
-            if (fc != null) {
-                admin.functions().deleteFunction(tenant, inOutNamespace, "output-handler");
+            if (fc == null) {
+                functionSetup();
             }
         } catch (PulsarAdminException e) {
-            System.err.println("Failed to delete pulsar function: " + e.getMessage());
-        }
-
-        // Create new pulsar function
-        Functions functions = admin.functions();
-        fc = new FunctionConfig();
-        fc.setJar(functionFilePath);
-        fc.setClassName("se.umu.cs.OutputHandlerFunction");
-        fc.setTenant(tenant);
-        fc.setNamespace(inOutNamespace);
-        fc.setName("output-handler");
-        fc.setInputs(Collections.singleton(inOutBase + "output-topic")); // TODO: Change to output-topic
-        fc.setOutput(inOutBase + "log-topic");
-        fc.setRuntime(FunctionConfig.Runtime.JAVA);
-        fc.setParallelism(3);
-
-        try {
-            functions.createFunction(fc, functionFilePath);
-        } catch (PulsarAdminException e) {
-            System.err.println("Failed to create pulsar function: " + e.getMessage());
-            e.printStackTrace(System.err);
-            System.exit(-1);
+            functionSetup();
         }
 
         // Check function status
         try {    
+            Functions functions = admin.functions();
+
             FunctionConfig createdFc = admin.functions().getFunction(tenant, inOutNamespace, "output-handler");
             if (createdFc == null){
                 System.err.println("Function is not created.");
@@ -111,18 +103,14 @@ public final class PulsarController {
                 System.err.println("Function is not found. Exiting...");
                 System.exit(-1);
             }
-            // if (status.getNumRunning() == 0) {
-            //     System.err.println("Function is not running. Exiting...");
-            //     System.exit(-1);
-            // }
         } catch(PulsarAdminException e) {
             System.err.println("Failed to check function status: " + e.getMessage());
             System.exit(-1);
         }
     }
 
-    private static void configurePulsar(boolean cleanOld){
-         try {
+    private static void configurePulsar(){
+        try {
             SchemaInfo si2 = SchemaInfo.builder()
                 .name("NeoPayload")
                 .type(SchemaType.PROTOBUF)
@@ -160,25 +148,23 @@ public final class PulsarController {
             System.exit(-1);
         }
         
-        if(cleanOld) {
-            try {
-                // Kill all previous client topics
-                List<String> topics = admin.topics().getList(tenant + "/" + namespace);
-                System.out.println(topics);
-                
-                // Delete each topic
-                for (String topic : topics) {
-                    admin.topics().delete(topic, true);
-                    System.out.println("Deleted old client topic: " + topic);
-                }
+        // try {
+        //     // Kill all previous client topics
+        //     List<String> topics = admin.topics().getList(tenant + "/" + namespace);
+        //     System.out.println(topics);
+            
+        //     // Delete each topic
+        //     for (String topic : topics) {
+        //         admin.topics().delete(topic, true);
+        //         System.out.println("Deleted old client topic: " + topic);
+        //     }
 
-            }catch (PulsarAdminException e) {
-                System.err.println("Failed to clear old client topics.");
-                e.printStackTrace();
-                System.exit(-1);
-            }
-            System.out.println("Old topics cleaned up.");
-        }
+        // }catch (PulsarAdminException e) {
+        //     System.err.println("Failed to clear old client topics.");
+        //     e.printStackTrace();
+        //     System.exit(-1);
+        // }
+        // System.out.println("Old topics cleaned up.");
     }
 
     public static String createClientTopic(String id) {
@@ -230,5 +216,27 @@ public final class PulsarController {
     public static synchronized String getNextId() {
         return Long.toString(hazelcastClient.getFlakeIdGenerator("requestId").newId());
         //return String.valueOf(clientId++);
+    }
+
+    private static void functionSetup() {
+        Functions functions = admin.functions();
+        FunctionConfig fc = new FunctionConfig();
+        fc.setJar(functionFilePath);
+        fc.setClassName("se.umu.cs.OutputHandlerFunction");
+        fc.setTenant(tenant);
+        fc.setNamespace(inOutNamespace);
+        fc.setName("output-handler");
+        fc.setInputs(Collections.singleton(inOutBase + "output-topic")); // TODO: Change to output-topic
+        fc.setOutput(inOutBase + "log-topic");
+        fc.setRuntime(FunctionConfig.Runtime.JAVA);
+        fc.setParallelism(3);
+
+        try {
+            functions.createFunction(fc, functionFilePath);
+        } catch (PulsarAdminException e) {
+            System.err.println("Failed to create pulsar function: " + e.getMessage());
+            e.printStackTrace(System.err);
+            System.exit(-1);
+        }
     }
 }

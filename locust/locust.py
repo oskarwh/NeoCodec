@@ -1,6 +1,7 @@
 from locust import HttpUser, task, between
 import locust.runners
 from os import walk
+import os
 import random, requests
 import sys
 import pulsar
@@ -8,18 +9,18 @@ import time
 
 sys.path.append('proto')
 
-from proto import payload_pb2, metadata_pb2, file_pb2, filetypes_pb2
+from proto import payload_pb2
 
 
 INPUT_TOPIC = "persistent://public/inout/input-topic"
 OUTPUT_TOPIC = "persistent://public/neocodec/"
 VIDEO_PATH = "./videos"
-VIDEO_TYPE_LIST = filetypes_pb2.NeoFileTypes.items()
+VIDEO_TYPE_LIST = ["mp4", "avi", "mov"]
 REST_URL = "http://localhost:8095/api/converter"
 locust.runners.HEARTBEAT_INTERVAL = 30
 
 class QuickstartUser(HttpUser):
-    wait_time = between(10, 20)
+    wait_time = between(30, 60)
     host = "http://localhost:23456"
 
     def on_start(self):
@@ -59,7 +60,12 @@ class QuickstartUser(HttpUser):
         self.client.close()
 
     def receive_message(self, consumer, message):
-        print("Message consumed after {} seconds".format(time.time() - self.start_time))
+        runtime = str(time.time() - self.start_time)
+        print("Message consumed after " + runtime + " seconds")
+
+        with open("results.csv", "a") as file:
+                file.write(runtime + ";" + str(time.time()) + ";" + str(self.video_size) + "\n")
+
         try:
             print("Received message id='{}'".format(message.message_id()))
             # Acknowledge successful processing of the message
@@ -81,11 +87,13 @@ class QuickstartUser(HttpUser):
 
         # Randomize conversion
         index = random.randint(0, len(VIDEO_TYPE_LIST)-1)
-        target_type = VIDEO_TYPE_LIST[index][0]
+        target_type = VIDEO_TYPE_LIST[index]
 
         # Build proto payload
         payload = payload_pb2.NeoPayload()
         
+        self.video_size = len(video_bytes)
+
         payload.file.file = video_bytes
         payload.file.fileName = video_name 
         payload.file.targetType = target_type

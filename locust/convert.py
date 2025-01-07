@@ -3,21 +3,27 @@ import random, requests
 import sys
 import pulsar
 import time
+import os
 
 sys.path.append('proto')
 
-from proto import payload_pb2, filetypes_pb2
+from proto import payload_pb2
 
 INPUT_TOPIC = "persistent://public/inout/input-topic"
 OUTPUT_TOPIC = "persistent://public/neocodec/"
-VIDEO_TYPE_LIST = filetypes_pb2.NeoFileTypes.items()
 REST_URL = "http://localhost:8095/api/converter"
 
 class Convert:
     def main(self):
+        self.csv = False
         argv = sys.argv
-        if len(argv) != 3:
+        if len(argv) < 3:
             print("Usage: python3 convert.py <video_path> <output_path>")
+            exit(-1)
+        elif len(argv) == 4 and argv[3] == "-csv":
+            self.csv = True
+        elif len(argv) > 4:
+            print("To many arguments")
             exit(-1)
 
         self.video_path = argv[1]
@@ -46,9 +52,13 @@ class Convert:
         self.start_time = time.time()
         self.producer.send(self.fetch_message().SerializeToString())
 
-        print("Waiting for response...")
         msg = self.consumer.receive()
-        print("Response consumed in " + str(time.time() - self.start_time) + " seconds")
+        runtime = str(time.time() - self.start_time)
+        print("Response consumed in " + runtime + " seconds")
+
+        if self.csv:
+            with open("results.csv", "a") as file:
+                file.write(runtime + ";" + str(os.path.getsize(self.video_path)) + "\n")
 
         try:
             print("Received message id='{}'".format(msg.message_id()))
@@ -91,12 +101,7 @@ class Convert:
         payload.file.fileName = video_name 
         
         type = self.output_path.split('.')[-1]
-        if (type == "avi"):
-            payload.file.targetType = filetypes_pb2.NeoFileTypes.AVI
-        else:
-            print("ERROR: Unsupported output file type: " + type)
-            self.client.close()
-            exit(-1)
+        payload.file.targetType = type
 
         payload.metadata.clientId = int(self.id)
         payload.metadata.error = 0
