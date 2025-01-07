@@ -44,6 +44,7 @@ public class Converter {
                 .create();
 
         while (true) {
+            // TODO On timeout check if consumer is still up, if not kill program
             Message<NeoPayload> msg = consumer.receive();
 
             System.out.println("----------| Starting convertion |----------");
@@ -108,6 +109,7 @@ public class Converter {
                     .build();
             }
             
+            // TODO Move this to after produce of new message
             consumer.acknowledge(msg);
             
             // Send output payload to next topic
