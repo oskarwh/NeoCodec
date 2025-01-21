@@ -7,7 +7,7 @@ option java_outer_classname = "NeoMetadataMessage";
 package se.umu.cs;
 
 message NeoMetadata {
-    int32 clientId = 1;
+    int64 clientId = 1;
     int32 error = 2;
     string errorMessage = 3;
 }

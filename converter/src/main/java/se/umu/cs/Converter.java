@@ -24,7 +24,7 @@ import net.bramp.ffmpeg.FFprobe;
 import net.bramp.ffmpeg.builder.FFmpegBuilder;
 
 public class Converter {
-    private static final String PULSAR_BROKERS = "pulsar://10.43.101.106:6650";
+    private static final String PULSAR_BROKERS = "pulsar://10.43.62.94:6650";
     
     public static void main(String[] args) throws IOException {
         PulsarClient client = PulsarClient.builder()
@@ -44,6 +44,7 @@ public class Converter {
                 .create();
 
         while (true) {
+            // TODO On timeout check if consumer is still up, if not kill program
             Message<NeoPayload> msg = consumer.receive();
 
             System.out.println("----------| Starting convertion |----------");
@@ -52,9 +53,8 @@ public class Converter {
 
             try {
                 NeoFile file = msg.getValue().getFile();
-                // String sourceType = "." + new StringBuilder(new StringBuilder(file.getFileName()).reverse().toString().split(".")[0]).reverse().toString();
                 String sourceType = file.getFileName().substring(file.getFileName().lastIndexOf('.'));
-                String targetType = "." + file.getTargetType().getValueDescriptor().getName();
+                String targetType = "." + file.getTargetType();
                 System.out.println("Convertion from type " + sourceType + " to " + targetType + " requested.");
 
                 // Create temporary file 
@@ -96,19 +96,20 @@ public class Converter {
                     .build();
 
                 // TODO: For testing purposes, result will be thrown
-                System.out.println("Successfull convertion of file: " + file.getFileName() + " to " + file.getTargetType().getValueDescriptor().getName() + " format.");
+                System.out.println("Successfull convertion of file: " + file.getFileName() + " to " + file.getTargetType() + " format.");
             } catch (Exception e) {
-                System.err.println("Failed to convert file: " + e.getMessage());
+                System.err.println("FFmpeg failed to convert file, please check your input file for clues: " + e.getMessage());
                 
                 result = NeoPayload.newBuilder()
                     .setMetadata(NeoMetadata.newBuilder()
+                        .setClientId(msg.getValue().getMetadata().getClientId())
                         .setError(-1)
                         .setErrorMessage(e.getMessage())
                         .build())
                     .build();
-                        
             }
             
+            // TODO Move this to after produce of new message
             consumer.acknowledge(msg);
             
             // Send output payload to next topic
@@ -136,8 +137,8 @@ public class Converter {
             .overrideOutputFiles(true)
             .addOutput(target)
                 .setFormat(target.substring(target.indexOf('.') + 1))
-                .setAudioCodec("aac")
-                .setVideoCodec("libx264")
+                // .setAudioCodec("aac")
+                // .setVideoCodec("libx264")
                 .done();
 
         FFmpegExecutor executor = new FFmpegExecutor(ffmpeg, ffprobe);

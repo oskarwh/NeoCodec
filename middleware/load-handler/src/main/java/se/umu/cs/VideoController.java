@@ -23,11 +23,10 @@ public class VideoController {
     
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<Integer> getId() {
+    public ResponseEntity<Long> getId() {
         String id = PulsarController.getNextId();
+        System.out.println("New client id: " + id);
         PulsarController.createClientTopic(id);
-        return ResponseEntity.status(HttpStatus.OK).body(Integer.valueOf(id));
+        return ResponseEntity.status(HttpStatus.OK).body(Long.valueOf(id));
     }
-
-    
 }

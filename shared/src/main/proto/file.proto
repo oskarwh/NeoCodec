@@ -1,7 +1,5 @@
 syntax = "proto3";
 
-import "filetypes.proto";
-
 option java_multiple_files = true;
 option java_package = "se.umu.cs";
 option java_outer_classname = "NeoFileMessage";
@@ -11,5 +9,5 @@ package se.umu.cs;
 message NeoFile {
     bytes file = 1;
     string fileName = 2;
-    NeoFileTypes targetType = 3;
+    string targetType = 3;
 }
