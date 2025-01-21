@@ -4,7 +4,7 @@ metadata:
   name: middleware
   namespace: middleware 
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       bb: middleware
@@ -20,7 +20,11 @@ spec:
           resources:
             requests:
               ephemeral-storage: "1Gi"
+                #memory: "128Mi"
+                #cpu: "0.1"
             limits:
               ephemeral-storage: "2Gi"
+                #memory: "128Mi"
+                #cpu: "0.1"
       imagePullSecrets:
         - name: dockercred

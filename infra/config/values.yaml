@@ -26,7 +26,7 @@ components:
     # toolset
     toolset: true
     # pulsar manager
-    pulsar_manager: true
+    pulsar_manager: false
 
 ## Settings
 zookeeper:
@@ -91,6 +91,8 @@ proxy:
         requests:
             cpu: "0.1"
             memory: "128Mi"
+    ports:
+        http: 90
 
 ## Monitoring Components
 ##

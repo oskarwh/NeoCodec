@@ -10,11 +10,11 @@ spec:
   triggers:
   - type: pulsar
     metadata:
-      adminURL: http://10.43.101.106:80
+      adminURL: http://10.43.28.107:90
       topic: persistent://public/inout/input-topic
       isPartitionedTopic: "false"
       subscription: input-subscription 
-      msgBacklogThreshold: '5'
+      msgBacklogThreshold: '3'
   cooldownPeriod: 100
-  maxReplicaCount: 20
+  maxReplicaCount: 8
   minReplicaCount: 1
